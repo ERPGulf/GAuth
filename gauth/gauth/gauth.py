@@ -798,13 +798,15 @@ def g_update_password_using_reset_key(new_password,reset_key,username):
         return  Response(json.dumps({"message": e , "user_count": 0}), status=500, mimetype='application/json')
 
 
-@frappe.whitelist()
-def send_firebase_notification(client_token,title,body):
+@frappe.whitelist(allow_guest=True)
+def send_firebase_notification(title,body,client_token="",topic=""):
     #Sending firebase notification to Android and IPhone from Frappe ERPNext 
     
     import firebase_admin
     from firebase_admin import credentials,exceptions,messaging
 
+    if client_token == "" and topic == "":
+            return  Response(json.dumps({"message": "Please provide either client token or topic to send message to Firebase" , "message_sent": 0}), status=417, mimetype='application/json')
     try:
         # Check if app already exists
         try:
@@ -813,19 +815,75 @@ def send_firebase_notification(client_token,title,body):
             # If not, then initialize it
             cred = credentials.Certificate("firebase.json")
             firebase_admin.initialize_app(cred)
-
-        message = messaging.Message(
+        
+        if client_token != "":
+            
+            message = messaging.Message(
             notification=messaging.Notification(
                 title=title,
                 body=body,
             ),
             token=client_token,
-        )
-
-        response = messaging.send(message)
-        return 'Successfully sent message:', response
+            )
+            
+        if topic != "":
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title=title,
+                    body=body,
+                ),
+                topic=topic,
+            )
+        return {'message': 'Successfully sent message', 'response': title}
     except Exception as e:
         error_message = str(e)
         frappe.response['message'] = 'Failed to send firebase message'
         frappe.response['error'] = error_message
         frappe.response['http_status_code'] = 500
+        return frappe.response
+    
+
+@frappe.whitelist(allow_guest=True)
+def send_firebase_data(title,body,auction_id,client_token="",topic=""):
+    #Sending firebase data to Android and IPhone from Frappe ERPNext 
+    
+    import firebase_admin
+    from firebase_admin import credentials,exceptions,messaging
+
+    if client_token == "" and topic == "":
+            return  Response(json.dumps({"message": "Please provide either client token or topic to send message to Firebase" , "message_sent": 0}), status=417, mimetype='application/json')
+    try:
+        # Check if app already exists
+        try:
+            firebase_admin.get_app()
+        except ValueError:
+            # If not, then initialize it
+            cred = credentials.Certificate("firebase.json")
+            firebase_admin.initialize_app(cred)
+            
+        data = {
+            'notification_type': 'auction_ended',
+            'auctionId': auction_id
+            }
+        
+        if client_token != "":
+            message = messaging.Message(
+                data=data,
+                token=client_token,
+            )
+            response = messaging.send(message)
+
+        if topic != "":
+            message = messaging.Message(
+                data=data,
+                topic=topic,
+            )
+            response = messaging.send(message)
+
+        return {'message': 'Successfully sent message', 'response': data}
+    except Exception as e:
+        error_message = str(e)
+        frappe.response['message'] = 'Failed to send firebase message'
+        frappe.response['error'] = error_message
+        frappe.response['http_status_code'] = 500
+        return frappe.response
