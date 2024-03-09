@@ -25,6 +25,7 @@ from frappe.utils import add_days, flt
 from erpnext.accounts.report.financial_statements import get_data, get_period_list
 from erpnext.accounts.utils import get_balance_on, get_fiscal_year
 
+
 error='Authentication required. Please provide valid credentials..'
 
 @frappe.whitelist(allow_guest=True)
@@ -796,4 +797,35 @@ def g_update_password_using_reset_key(new_password,reset_key,username):
     except Exception as e:
         return  Response(json.dumps({"message": e , "user_count": 0}), status=500, mimetype='application/json')
 
-        
+
+@frappe.whitelist()
+def send_firebase_notification(client_token,title,body):
+    #Sending firebase notification to Android and IPhone from Frappe ERPNext 
+    
+    import firebase_admin
+    from firebase_admin import credentials,exceptions,messaging
+
+    try:
+        # Check if app already exists
+        try:
+            firebase_admin.get_app()
+        except ValueError:
+            # If not, then initialize it
+            cred = credentials.Certificate("firebase.json")
+            firebase_admin.initialize_app(cred)
+
+        message = messaging.Message(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            token=client_token,
+        )
+
+        response = messaging.send(message)
+        return 'Successfully sent message:', response
+    except Exception as e:
+        error_message = str(e)
+        frappe.response['message'] = 'Failed to send firebase message'
+        frappe.response['error'] = error_message
+        frappe.response['http_status_code'] = 500
