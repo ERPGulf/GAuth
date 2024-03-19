@@ -48,7 +48,7 @@ curl --location '/api/method/gauth.gauth.gauth.generate_token_secure_for_users' 
 --form 'api_key="your api key"' \
 --form 'api_secret=""' \
 --form 'app_key="xxxxx"' \
---form 'client_secret="cfd619c909"' \
+--form 'client_secret="xxxxx"' \
 --form 'username="xxxx"' \
 --form 'password="xxx"'
 ```
@@ -65,7 +65,7 @@ curl --location '/api/method/gauth.gauth.gauth.generate_token_secure_for_users' 
         },
         "user": {
             "id": "xx",
-            "full_name": "rishal",
+            "full_name": "xxxxxx",
             "email": "rxxxxx",
             "phone": "your mobile number"
         }
@@ -80,7 +80,7 @@ This api checks the availability of a user based on either their email or mobile
 
 ```
 curl --location --request GET 'api/method/gauth.gauth.gauth.is_user_available' \
---header 'Authorization: Bearer 3FXrkLLCsFZL9GvU3kXOIcaCtnBrqB' \
+--header 'Authorization: Bearer xxxxxx' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
 --form 'mobile_phone=""' \
 --form 'user_email="xxx"'
@@ -103,7 +103,7 @@ curl --location 'api/method/gauth.gauth.gauth.g_create_user' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
 --form 'full_name="Your Name"' \
 --form 'password="YourPassword"' \
---form 'mobile_no="323232243"' \
+--form 'mobile_no="xxxxxxx"' \
 --form 'email="youremail@erpgulf.com"' \
 --form 'role="Auction"' \
 --form 'id=""'
@@ -123,7 +123,7 @@ Api is used to get the username of token which used in bearer token for authenti
 
 ```
 curl --location 'api/method/gauth.gauth.gauth.whoami' \
---header 'Authorization: Bearer 3FXrkLLCsFZL9GvU3kXOIcaCtnBrqB' \
+--header 'Authorization: Bearerxxxxx' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image='
 
 ```
@@ -142,8 +142,8 @@ curl --location 'api/method/gauth.gauth.gauth.whoami' \
 
 ```
 curl --location 'api/method/gauth.gauth.gauth.g_delete_user' \
---header 'Authorization: Bearer 3FXrkLLCsFZL9GvU3kXOIcaCtnBrqB' \
---header 'Cookie: full_name=xxxx; sid=834d08adda118bf4a9761bade5ab686f4afcdd40db680ff103663ea7; system_user=yes; user_id=mumtaz32%40erpgulf.com; user_image=' \
+--header 'Authorization: Bearer xxxxxxxB' \
+--header 'Cookie: full_name=xxxx; sid=xxxxx; system_user=yes; user_id=mumtaz32%40erpgulf.com; user_image=' \
 --form 'email="xxxxx"' \
 --form 'mobile_no=""' \
 --form 'username="sfdwsw"'
@@ -165,7 +165,7 @@ Api is used to retrieve user details from a Frappe-based system based on either 
 
 ```
 curl --location --request GET 'api/method/gauth.gauth.gauth.get_user_name' \
---header 'Authorization: Bearer IYPuOij4ywRPGHEfWQJgYNdrJxzUzh' \
+--header 'Authorization: Bearer xxxxxx' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
 --form 'user_email="xxxx"' \
 --form 'mobile_phone="7xxxx"'
@@ -209,7 +209,7 @@ This api is  designed to create new user accounts in a system. It takes several 
 
 ```
 curl --location --request GET 'api/method/gauth.gauth.gauth.is_user_available' \
---header 'Authorization: Bearer 3FXrkLLCsFZL9GvU3kXOIcaCtnBrqB' \
+--header 'Authorization: Bearer xxxxx' \
 --form 'mobile_phone="xx"' \
 --form 'user_email="xxx"'
 ```
@@ -247,7 +247,7 @@ This api is designed to enable or disable a user in a system based on the provid
 
 ```
 curl --location '/api/method/gauth.gauth.gauth.g_user_enable' \
---header 'Authorization: Bearer rSO1GXm41IXbyrK8VSJDrBlM6bBHyn' \
+--header 'Authorization: Bearer rxxxxx' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
 --form 'username="xxx"' \
 --form 'email="7xxxx"' \
@@ -289,7 +289,7 @@ This api is designed to find the balance of a user, here authentication is requi
 ### Request
 ```
 curl --location --request GET 'api/method/gauth.gauth.gauth.get_account_balance' \
---header 'Authorization: Bearer YYVazI6ZM6dKh1JBeaQy6jzl8CTQBe' \
+--header 'Authorization: Bearer xxxxx' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
 --form 'customer="xx"' \
 --form 'mobile_phone="xxx"'
