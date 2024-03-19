@@ -18,20 +18,20 @@ The generate token secure API is designed to facilitate secure authentication an
 ```
 curl --location '/api/method/gauth.gauth.gauth.generate_token_secure' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=no; user_id=Guest; user_image=; full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
---form 'api_key="73935669a6be77a@erpgulf.com"' \
---form 'api_secret="K9sLpQvZrFyWm7N3"' \
---form 'app_key="MzM1ZjdkMmUzMzgxNjM1NWJiNWQwYzE3YjY3YjMyZDU5N2E3ODRhZmE5NjU0N2RiMWVjZGE0ZjE4OGM1MmM1MQ=="' \
---form 'client_secret="cfd619c909"'
+--form 'api_key="xxxxxx"' \
+--form 'api_secret="xxxxx"' \
+--form 'app_key="xxxxxmE5Nxxx=="' \
+--form 'client_secret="xxxx"'
 ```
 ### Response
 ```
 {
     "data": {
-        "access_token": "3FXrkLLCsFZL9GvU3kXOIcaCtnBrqB",
+        "access_token": "3xxxxxB",
         "expires_in": 3600,
         "token_type": "Bearer",
         "scope": "all openid",
-        "refresh_token": "QIEnLPBgrm7He0w8luRZWlcjHr5eX7"
+        "refresh_token": "xxxxxxxXxx"
     }
 }
 
@@ -47,26 +47,26 @@ curl --location '/api/method/gauth.gauth.gauth.generate_token_secure_for_users' 
 --header 'Authorization: Bearer your bearer token' \
 --form 'api_key="your api key"' \
 --form 'api_secret=""' \
---form 'app_key="MzM1ZjdkMmUzMzgxNjM1NWJiNWQwYzE3YjY3YjMyZDU5N2E3ODRhZmE5NjU0N2RiMWVjZGE0ZjE4OGM1MmM1MQ=="' \
+--form 'app_key="xxxxx"' \
 --form 'client_secret="cfd619c909"' \
---form 'username="rishal@testgmail.com1"' \
---form 'password="rishal@123"'
+--form 'username="xxxx"' \
+--form 'password="xxx"'
 ```
 ### Response
 ```
 {
     "data": {
         "token": {
-            "access_token": "AgSUgPwZzuO9TSlcwPK64NIJNFNBBY",
+            "access_token": "xxx",
             "expires_in": 3600,
             "token_type": "Bearer",
             "scope": "all openid",
-            "refresh_token": "zNVB71XJzJM9sr0wZAoWH5gzTxBid5"
+            "refresh_token": "xxxx5"
         },
         "user": {
-            "id": "rishal@testgmail.com1",
+            "id": "xx",
             "full_name": "rishal",
-            "email": "rishal@testgmail.com1",
+            "email": "rxxxxx",
             "phone": "your mobile number"
         }
     }
@@ -83,7 +83,7 @@ curl --location --request GET 'api/method/gauth.gauth.gauth.is_user_available' \
 --header 'Authorization: Bearer 3FXrkLLCsFZL9GvU3kXOIcaCtnBrqB' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
 --form 'mobile_phone=""' \
---form 'user_email="mumtaz32@erpgulf.com3"'
+--form 'user_email="xxx"'
 ```
 ### Response
 ```
@@ -131,7 +131,7 @@ curl --location 'api/method/gauth.gauth.gauth.whoami' \
 ```
 {
     "data": {
-        "user": "73935669a6be77a@erpgulf.com"
+        "user": "xxx"
     }
 }
 ```
@@ -143,8 +143,8 @@ curl --location 'api/method/gauth.gauth.gauth.whoami' \
 ```
 curl --location 'api/method/gauth.gauth.gauth.g_delete_user' \
 --header 'Authorization: Bearer 3FXrkLLCsFZL9GvU3kXOIcaCtnBrqB' \
---header 'Cookie: full_name=Mumtaz%2032; sid=834d08adda118bf4a9761bade5ab686f4afcdd40db680ff103663ea7; system_user=yes; user_id=mumtaz32%40erpgulf.com; user_image=' \
---form 'email="25801478@erpgulf.com"' \
+--header 'Cookie: full_name=xxxx; sid=834d08adda118bf4a9761bade5ab686f4afcdd40db680ff103663ea7; system_user=yes; user_id=mumtaz32%40erpgulf.com; user_image=' \
+--form 'email="xxxxx"' \
 --form 'mobile_no=""' \
 --form 'username="sfdwsw"'
 ```
@@ -167,15 +167,15 @@ Api is used to retrieve user details from a Frappe-based system based on either 
 curl --location --request GET 'api/method/gauth.gauth.gauth.get_user_name' \
 --header 'Authorization: Bearer IYPuOij4ywRPGHEfWQJgYNdrJxzUzh' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
---form 'user_email="72763671@erpgulf.com"' \
---form 'mobile_phone="72763671"'
+--form 'user_email="xxxx"' \
+--form 'mobile_phone="7xxxx"'
 ```
 ### Response
 ```
 {
     "data": [
         {
-            "name": "72763671@erpgulf.com",
+            "name": "xxxx",
             "enabled": 1
         }
     ],
@@ -191,7 +191,7 @@ curl --location --request GET 'api/method/gauth.gauth.gauth.get_user_name' \
 curl --location 'api/method/gauth.gauth.gauth.g_update_password' \
 --header 'Authorization: Bearer YourToken' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
---form 'username="youruser@erpgulf.com"' \
+--form 'username="xxx"' \
 --form 'password="YourPassword"'
 ```
 ### Response
@@ -210,15 +210,15 @@ This api is  designed to create new user accounts in a system. It takes several 
 ```
 curl --location --request GET 'api/method/gauth.gauth.gauth.is_user_available' \
 --header 'Authorization: Bearer 3FXrkLLCsFZL9GvU3kXOIcaCtnBrqB' \
---form 'mobile_phone="72763671"' \
---form 'user_email="72763671@erpgulf.com"'
+--form 'mobile_phone="xx"' \
+--form 'user_email="xxx"'
 ```
 ### Response
 ```
 {
-    "reset_key": "261907",
+    "reset_key": "xx7",
     "generated_time": "2024-02-12 07:35:21.903321",
-    "URL": "https://erp.dallahmzad.com:8012/update-password?key=261907"
+    "URL":" 8012/update-password?key=261907"
 }
 ```
 
@@ -249,9 +249,9 @@ This api is designed to enable or disable a user in a system based on the provid
 curl --location '/api/method/gauth.gauth.gauth.g_user_enable' \
 --header 'Authorization: Bearer rSO1GXm41IXbyrK8VSJDrBlM6bBHyn' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
---form 'username="72763671@erpgulf.com1"' \
---form 'email="72763671@erpgulf.com1"' \
---form 'mobile_no="727636711"' \
+--form 'username="xxx"' \
+--form 'email="7xxxx"' \
+--form 'mobile_no="7xxx"' \
 --form 'enable_user="True"'
 ```
 ### Response
@@ -291,8 +291,8 @@ This api is designed to find the balance of a user, here authentication is requi
 curl --location --request GET 'api/method/gauth.gauth.gauth.get_account_balance' \
 --header 'Authorization: Bearer YYVazI6ZM6dKh1JBeaQy6jzl8CTQBe' \
 --header 'Cookie: full_name=Guest; sid=Guest; system_user=yes; user_id=Guest; user_image=' \
---form 'customer="mumtaz32@erpgulf.com"' \
---form 'mobile_phone="323232422"'
+--form 'customer="xx"' \
+--form 'mobile_phone="xxx"'
 ```
 ### Response
 

@@ -802,6 +802,7 @@ def g_update_password_using_reset_key(new_password,reset_key,username):
 def send_firebase_notification(title,body,client_token="",topic=""):
     #Sending firebase notification to Android and IPhone from Frappe ERPNext 
     
+    
     import firebase_admin
     from firebase_admin import credentials,exceptions,messaging
 
@@ -817,7 +818,6 @@ def send_firebase_notification(title,body,client_token="",topic=""):
             firebase_admin.initialize_app(cred)
         
         if client_token != "":
-            
             message = messaging.Message(
             notification=messaging.Notification(
                 title=title,
@@ -834,7 +834,7 @@ def send_firebase_notification(title,body,client_token="",topic=""):
                 ),
                 topic=topic,
             )
-        return {'message': 'Successfully sent message', 'response': title}
+        return {'message': 'Successfully sent message', 'response': messaging.send(message)}
     except Exception as e:
         error_message = str(e)
         frappe.response['message'] = 'Failed to send firebase message'
@@ -844,7 +844,7 @@ def send_firebase_notification(title,body,client_token="",topic=""):
     
 
 @frappe.whitelist(allow_guest=True)
-def send_firebase_data(title,body,auction_id,client_token="",topic=""):
+def send_firebase_data(auction_id,notification_type,user_id=None,winner_amount=None,client_token="",topic="",):
     #Sending firebase data to Android and IPhone from Frappe ERPNext 
     
     import firebase_admin
@@ -862,8 +862,10 @@ def send_firebase_data(title,body,auction_id,client_token="",topic=""):
             firebase_admin.initialize_app(cred)
             
         data = {
-            'notification_type': 'auction_ended',
-            'auctionId': auction_id
+            'notification_type':notification_type,
+            'auctionId': (auction_id),
+             "winner_id": user_id if user_id else "" ,
+            "highest_bid_amount": winner_amount if winner_amount else ""
             }
         
         if client_token != "":
@@ -880,7 +882,8 @@ def send_firebase_data(title,body,auction_id,client_token="",topic=""):
             )
             response = messaging.send(message)
 
-        return {'message': 'Successfully sent message', 'response': data}
+        return  Response(json.dumps({"data":data}), status=200, mimetype='application/json')
+
     except Exception as e:
         error_message = str(e)
         frappe.response['message'] = 'Failed to send firebase message'
