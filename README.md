@@ -143,7 +143,7 @@ curl --location 'api/method/gauth.gauth.gauth.whoami' \
 ```
 curl --location 'api/method/gauth.gauth.gauth.g_delete_user' \
 --header 'Authorization: Bearer xxxxxxxB' \
---header 'Cookie: full_name=xxxx; sid=xxxxx; system_user=yes; user_id=mumtaz32%40erpgulf.com; user_image=' \
+--header 'Cookie: full_name=xxxx; sid=xxxxx; system_user=yes; user_id=xxxxx; user_image=' \
 --form 'email="xxxxx"' \
 --form 'mobile_no=""' \
 --form 'username="sfdwsw"'
