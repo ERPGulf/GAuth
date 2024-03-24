@@ -798,7 +798,7 @@ def g_update_password_using_reset_key(new_password,reset_key,username):
         return  Response(json.dumps({"message": e , "user_count": 0}), status=500, mimetype='application/json')
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def send_firebase_notification(title,body,client_token="",topic=""):
     #Sending firebase notification to Android and IPhone from Frappe ERPNext 
     
@@ -842,51 +842,87 @@ def send_firebase_notification(title,body,client_token="",topic=""):
         frappe.response['http_status_code'] = 500
         return frappe.response
     
+    
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def send_firebase_data(auction_id,notification_type,user_id=None,winner_amount=None,client_token="",topic="",):
     #Sending firebase data to Android and IPhone from Frappe ERPNext 
     
-    import firebase_admin
-    from firebase_admin import credentials,exceptions,messaging
+        import firebase_admin
+        from firebase_admin import credentials,exceptions,messaging
 
-    if client_token == "" and topic == "":
-            return  Response(json.dumps({"message": "Please provide either client token or topic to send message to Firebase" , "message_sent": 0}), status=417, mimetype='application/json')
-    try:
-        # Check if app already exists
+        if client_token == "" and topic == "":
+                return  Response(json.dumps({"message": "Please provide either client token or topic to send message to Firebase" , "message_sent": 0}), status=417, mimetype='application/json')
         try:
-            firebase_admin.get_app()
-        except ValueError:
-            # If not, then initialize it
-            cred = credentials.Certificate("firebase.json")
-            firebase_admin.initialize_app(cred)
-            
-        data = {
-            'notification_type':notification_type,
-            'auctionId': (auction_id),
-             "winner_id": user_id if user_id else "" ,
-            "highest_bid_amount": winner_amount if winner_amount else ""
-            }
+                    # Check if app already exists
+                    try:
+                        firebase_admin.get_app()
+                    except ValueError:
+                        # If not, then initialize it
+                        cred = credentials.Certificate("firebase.json")
+                        firebase_admin.initialize_app(cred)
+                        
+                    data = {
+                        'notification_type':notification_type,
+                        'auctionId': (auction_id),
+                        "winner_id": user_id if user_id else "" ,
+                        "highest_bid_amount": winner_amount if winner_amount else ""
+                        }
+                    
+                    if client_token != "":
+                        message = messaging.Message(
+                            data=data,
+                            token=client_token,
+                        )
+                        response = messaging.send(message)
+
+                    if topic != "":
+                        message = messaging.Message(
+                            data=data,
+                            topic=topic,
+                        )
+                        response = messaging.send(message)
+
+                    return  Response(json.dumps({"data":data}), status=200, mimetype='application/json')
+
+        except Exception as e:
+            error_message = str(e)
+            frappe.response['message'] = 'Failed to send firebase message'
+            frappe.response['error'] = error_message
+            frappe.response['http_status_code'] = 500
+            return frappe.response
         
-        if client_token != "":
-            message = messaging.Message(
-                data=data,
-                token=client_token,
-            )
-            response = messaging.send(message)
+@frappe.whitelist(allow_guest=False)
+def firebase_subscribe_to_topic(topic,fcm_token):
+            import firebase_admin
+            from firebase_admin import credentials, messaging
 
-        if topic != "":
-            message = messaging.Message(
-                data=data,
-                topic=topic,
-            )
-            response = messaging.send(message)
+            if fcm_token == "" and topic == "":
+                return  Response(json.dumps({"message": "Please provide FCM Token and  topic to send message to Firebase" , "message_sent": 0}), status=417, mimetype='application/json')
+        
+            try:
 
-        return  Response(json.dumps({"data":data}), status=200, mimetype='application/json')
+                    # Check if app already exists
+                    try:
+                        firebase_admin.get_app()
+                    except ValueError:
+                        # If not, then initialize it
+                        cred = credentials.Certificate("firebase.json")
+                        firebase_admin.initialize_app(cred)
+                        
+                    try:
+                        response = messaging.subscribe_to_topic(fcm_token, topic)
+                        if response.failure_count > 0:
+                            return  Response(json.dumps({"data":"Failed to subscribe to Firebase topic"}), status=400, mimetype='application/json')
+                        else:
+                            return  Response(json.dumps({"data":"Successfully subscribed to Firebase topic"}), status=200, mimetype='application/json')
+                    except Exception as e:
+                        return  Response(json.dumps({"data":"Error happened while trying to  subscribe to Firebase topic"}), status=400, mimetype='application/json')
 
-    except Exception as e:
-        error_message = str(e)
-        frappe.response['message'] = 'Failed to send firebase message'
-        frappe.response['error'] = error_message
-        frappe.response['http_status_code'] = 500
-        return frappe.response
+                    
+            except Exception as e:
+                    error_message = str(e)
+                    frappe.response['message'] = 'Failed to send firebase message'
+                    frappe.response['error'] = error_message
+                    frappe.response['http_status_code'] = 500
+                    return frappe.response
