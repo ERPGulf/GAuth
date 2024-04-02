@@ -926,3 +926,54 @@ def firebase_subscribe_to_topic(topic,fcm_token):
                     frappe.response['error'] = error_message
                     frappe.response['http_status_code'] = 500
                     return frappe.response
+
+
+
+@frappe.whitelist(allow_guest=True) 
+def send_email(Subject=None, Text=None, To=None, From=None):
+    url = "https://api.sparkpost.com/api/v1/transmissions"
+    
+    
+    if not To:
+        return Response(json.dumps({"message": "At least one valid recipient is required"}), status=404, mimetype='application/json')
+    if not Text:
+        return Response(json.dumps({"message": "At least one of text or html needs to exist in content"}), status=404, mimetype='application/json')
+    if not Subject:
+        return Response(json.dumps({"message": "subject is a required field"}), status=404, mimetype='application/json')
+    if not From:
+        return Response(json.dumps({"message": "from is a required field"}), status=404, mimetype='application/json')
+    company=frappe.get_doc("Company","DallahMzad")
+    api_key=company.custom_sparkpost_id
+    # return api_key
+    try:
+        payload = json.dumps({
+            "content": {
+                "from": From,
+                "subject": Subject,
+                "text": Text
+            },
+            "recipients": [
+                {
+                    "address": To
+                }
+            ]
+        })
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
+
+        response = requests.request("POST", url, headers=headers, data=payload)
+        
+        
+        if response.status_code == 200:
+            return Response(response.text, status=200, mimetype='application/json')
+        else:
+            
+            return Response(response.text, status=response.status_code, mimetype='application/json')
+    
+    except Exception as e:
+        
+        return Response(json.dumps({"message": str(e)}), status=500, mimetype='application/json')
+
+
