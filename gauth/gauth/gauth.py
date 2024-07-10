@@ -114,11 +114,18 @@ def generate_token_secure_for_users( username, password, app_key):
         # var = frappe.get_list("Customer", fields=["name as id", "full_name","email", "mobile_no as phone",], filters={'name': ['like', username]})
         qid=frappe.get_list("Customer", fields=["name as id","custom_full_name as  full_name","custom_mobile_number as phone","name as email","custom_qid as qid"], filters={'name': ['like', username]})
         if response.status_code == 200:
+            doc=frappe.get_doc({
+            "doctype": "log_in details",
+            "user":username,
+            "time":now_datetime(),
+           }).insert(ignore_permissions=True)
             response_data = json.loads(response.text)
             
             result = {
                 "token": response_data,
-                "user": qid[0] if qid else {} 
+                "user": qid[0] if qid else {} ,
+                "time":str(now_datetime())
+                
             }
             return Response(json.dumps({"data": result}), status=200, mimetype='application/json')
         else:
@@ -233,12 +240,14 @@ def get_user_name(user_email = None, mobile_phone = None):
     else:
         return  Response(json.dumps({"data": "User not found" , "user_count": 0}), status=404, mimetype='application/json')
 
-def check_user_name(user_email = None, mobile_phone = None):
+def check_user_name(user_email = None, mobile_phone = None,user_name=None):
     if mobile_phone is not None:
         user_details_mobile = frappe.get_list('User', filters={'mobile_no': mobile_phone}, fields=["name", "enabled"] )
     if user_email is not None:
         user_details_email = frappe.get_list('User', filters={'email': user_email}, fields=["name", "enabled"] )
-    if len(user_details_mobile) >=1 or len(user_details_email) >=1:
+    if user_name is not None:
+        user_details_user_name = frappe.get_list('User', filters={'username':user_name}, fields=["name", "enabled"] )
+    if len(user_details_mobile) >=1 or len(user_details_email) >=1 or len(user_details_user_name)>=1:
         return  1
     else:
         return  0
@@ -279,7 +288,7 @@ def is_user_available(user_email = None, mobile_phone = None):
 @frappe.whitelist()
 def g_create_user(full_name, password, mobile_no, email,qid, role=None):
     # Check if the user already exists
-    if check_user_name(user_email=email, mobile_phone=mobile_no) > 0:
+    if check_user_name(user_email=email, mobile_phone=mobile_no,user_name=full_name) > 0:
         return Response(json.dumps({"message": "User already exists", "user_count": 1}), status=409, mimetype='application/json')
 
     try:
@@ -842,55 +851,63 @@ def send_firebase_notification(title,body,client_token="",topic=""):
         frappe.response['http_status_code'] = 500
         return frappe.response
     
+def _get_access_token():
     
+            """Retrieve a valid access token that can be used to authorize requests. FCM 
+
+            :return: Access token.
+            """
+            import google.auth.transport.requests
+            from google.oauth2 import service_account
+            SCOPES = ['https://www.googleapis.com/auth/firebase.messaging']
+            credentials = service_account.Credentials.from_service_account_file(
+                'dallah-fcm.json', scopes=SCOPES)
+            request = google.auth.transport.requests.Request()
+            credentials.refresh(request)
+            return credentials.token
 
 @frappe.whitelist(allow_guest=False)
-def send_firebase_data(auction_id,notification_type,user_id=None,winner_amount=None,client_token="",topic="",):
+def send_firebase_data(auction_id,notification_type,user_name=None,user_id=None,winner_amount=None,client_token="",topic="",):
     #Sending firebase data to Android and IPhone from Frappe ERPNext 
-    
-        import firebase_admin
-        from firebase_admin import credentials,exceptions,messaging
-
-        if client_token == "" and topic == "":
-                return  Response(json.dumps({"message": "Please provide either client token or topic to send message to Firebase" , "message_sent": 0}), status=417, mimetype='application/json')
-        try:
-                    # Check if app already exists
-                    try:
-                        firebase_admin.get_app()
-                    except ValueError:
-                        # If not, then initialize it
-                        cred = credentials.Certificate("firebase.json")
-                        firebase_admin.initialize_app(cred)
                         
-                    data = {
-                        'notification_type':notification_type,
-                        'auctionId': (auction_id),
-                        "winner_id": user_id if user_id else "" ,
-                        "highest_bid_amount": winner_amount if winner_amount else ""
-                        }
+                    import requests
+                    import json
+                    # frappe.throw(str(_get_access_token()))
+                    url = "https://fcm.googleapis.com/v1/projects/dallah-424a0/messages:send"
                     
-                    if client_token != "":
-                        message = messaging.Message(
-                            data=data,
-                            token=client_token,
-                        )
-                        response = messaging.send(message)
+                    if notification_type=="auction_ended":
+                            payload = json.dumps({
+                            "message": {
+                                "topic": auction_id, #auctionId: subcriber to that auction id,
+                                "data": {
+                                    "notification_type": "auction_ended",
+                                    "auctionId": auction_id # ////auctionId
+                                }
+                            }
+                            })
+                    else:
+                            # frappe.throw(str(winner_amount))
+                            payload = json.dumps({
+                            "message": {
+                                "topic": auction_id,
+                                "data": {
+                                    "notification_type": "winner_announcement",
+                                    "auctionId": auction_id,
+                                    "winner_name": user_id,
+                                    "winner_id": user_id,
+                                    "highest_bid_amount":"{:,.2f}".format(winner_amount)
+                                }
+                            }
+                            })
+                        
+                    headers = {
+                        'Authorization': 'Bearer ' + _get_access_token(),
+                        'Content-Type': 'application/json',
+                    }
 
-                    if topic != "":
-                        message = messaging.Message(
-                            data=data,
-                            topic=topic,
-                        )
-                        response = messaging.send(message)
+                    response = requests.request("POST", url, headers=headers, data=payload)
+                    return Response(json.dumps({"data": "Message sent"}), status=200, mimetype='application/json')
 
-                    return  Response(json.dumps({"data":data}), status=200, mimetype='application/json')
-
-        except Exception as e:
-            error_message = str(e)
-            frappe.response['message'] = 'Failed to send firebase message'
-            frappe.response['error'] = error_message
-            frappe.response['http_status_code'] = 500
-            return frappe.response
         
 @frappe.whitelist(allow_guest=False)
 def firebase_subscribe_to_topic(topic,fcm_token):
@@ -976,4 +993,8 @@ def send_email(Subject=None, Text=None, To=None, From=None):
         
         return Response(json.dumps({"message": str(e)}), status=500, mimetype='application/json')
 
-
+@frappe.whitelist(allow_guest=True) 
+def login_time():
+    username =frappe.session.user
+    doc=frappe.get_all("log_in details",fields=["time"], filters={'user': ['like',username]})
+    return doc
