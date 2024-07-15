@@ -363,7 +363,8 @@ def g_generate_reset_password_key(user, mobile="", send_email=False, password_ex
         url = "/update-password?key=" + key
         if password_expired:
             url = "/update-password?key=" + key + "&password_expired=true"
-        send_sms_expertexting(mobile,key)  # stop this on testing cycle as it send SMSes
+        # send_sms_expertexting(mobile,key)  # stop this on testing cycle as it send SMSes
+        send_sms_vodafone(mobile, urllib.parse.quote(f"Your Validation code for DallahMzad is {key} Thank You.  \n \n  رمز التحقق الخاص بك لـ DallahMzad هو {key} شكرًا لك."))
         link = get_url(url)
         if send_email:
             User.password_reset_mail(link)
@@ -515,7 +516,7 @@ def upload_file():
     return urls
 
 @frappe.whitelist(allow_guest=True)
-def send_sms_expertexting(phone_number,otp):
+def send_sms_expertexting(phone_number,otp):  # Send SMS using experttexting.com
     try:
         phone_number = "+974" + phone_number
         url = "https://www.experttexting.com/ExptRestApi/sms/json/Message/Send"
@@ -539,7 +540,34 @@ def send_sms_expertexting(phone_number,otp):
 
 
 @frappe.whitelist(allow_guest=True)
-def send_sms_twilio(phone_number,otp):
+def send_sms_vodafone(phone_number, message_text):  # send sms through Vodafone Qatar
+    try:
+        
+        
+            phone_number = "+974" + phone_number
+            url = "https://connectsms.vodafone.com.qa/SMSConnect/SendServlet"
+            # message_text = urllib.parse.quote(f"Your validation code for DallahMzad is {otp} Thank You.  \n \n  رمز التحقق الخاص بك لـ DallahMzad هو {otp} شكرًا لك.")
+            # payload = f'username={get_sms_id("experttexting")}&from=DEFAULT&to={phone_number}&text=Your%20validation%20code%20for%20DallahMzad%20is%20{otp}%20Thank%20You.'
+            payload = get_sms_id("vodafone") + "&content=" + message_text + "&source=97401" + "&destination=" + phone_number
+            headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+            }
+
+            response = requests.request("GET", url + payload, headers=headers, data="")
+            # return url + payload
+            if response.status_code  in (200,201 ):
+                return True
+            else:
+                return False
+        
+        
+    except Exception as e:
+        return "Error in qr sending SMS   " + str(e) 
+
+
+
+@frappe.whitelist(allow_guest=True)
+def send_sms_twilio(phone_number,otp):  # Send SMS OTP using twilio
     # success response = 201 created
     try:
         import requests
@@ -588,6 +616,13 @@ def get_sms_id(provider):
         return frappe.db.get_value("Company", default_company, "custom_twilio_id")
     if provider == "experttexting":
         return frappe.db.get_value("Company", default_company, "custom_experttexting_id")
+    if provider == "vodafone":
+        app = frappe.db.get_value("Company", default_company, "custom_vodafone_application")
+        passw = frappe.db.get_value("Company", default_company, "custom_vodafone_password")
+        mask = frappe.db.get_value("Company", default_company, "custom_vodafone_mask")
+        param_string = "?application=" + app + "&password=" + passw + "&mask=" + mask 
+        return param_string
+
     
 
 @frappe.whitelist(allow_guest=True)
