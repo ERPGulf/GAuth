@@ -245,9 +245,9 @@ def check_user_name(user_email = None, mobile_phone = None,user_name=None):
         user_details_mobile = frappe.get_list('User', filters={'mobile_no': mobile_phone}, fields=["name", "enabled"] )
     if user_email is not None:
         user_details_email = frappe.get_list('User', filters={'email': user_email}, fields=["name", "enabled"] )
-    if user_name is not None:
-        user_details_user_name = frappe.get_list('User', filters={'username':user_name}, fields=["name", "enabled"] )
-    if len(user_details_mobile) >=1 or len(user_details_email) >=1 or len(user_details_user_name)>=1:
+    # if user_name is not None:
+    #     user_details_user_name = frappe.get_list('User', filters={'username':user_name}, fields=["name", "enabled"] )
+    if len(user_details_mobile) >=1 or len(user_details_email) >=1 :
         return  1
     else:
         return  0
