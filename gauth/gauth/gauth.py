@@ -369,7 +369,7 @@ def g_generate_reset_password_key(user, mobile="", send_email=False, password_ex
         if send_email:
             User.password_reset_mail(link)
 
-        return   Response(json.dumps({"reset_key": key , "generated_time": str(now_datetime()), "URL": link }), status=200, mimetype='application/json')
+        return   Response(json.dumps({"reset_key": "XXXXXXX" , "generated_time": str(now_datetime()), "URL": "XXXXXX" }), status=200, mimetype='application/json')
     except Exception as e:
         return  Response(json.dumps({"message": e , "user_count": 0}), status=500, mimetype='application/json')
 
@@ -853,11 +853,11 @@ def send_firebase_notification(title,body,client_token="",topic=""):
     if client_token == "" and topic == "":
             return  Response(json.dumps({"message": "Please provide either client token or topic to send message to Firebase" , "message_sent": 0}), status=417, mimetype='application/json')
     try:
-        # Check if app already exists
+       
         try:
             firebase_admin.get_app()
         except ValueError:
-            # If not, then initialize it
+            
             cred = credentials.Certificate("firebase.json")
             firebase_admin.initialize_app(cred)
         
@@ -1033,3 +1033,77 @@ def login_time():
     username =frappe.session.user
     doc=frappe.get_all("log_in details",fields=["time"], filters={'user': ['like',username]})
     return doc
+
+
+
+
+
+import requests
+import json
+
+@frappe.whitelist(allow_guest=True)
+def send_notification(title=None, message=None, auction_id=None):
+    
+   
+            if not title and not message:
+                if not auction_id:
+                    return Response(json.dumps({"error": "Auction ID is required if title and message are not provided"}), status=400, mimetype='application/json')
+
+        
+            
+            url = "https://fcm.googleapis.com/v1/projects/dallah-424a0/messages:send"
+
+            
+            if auction_id:
+                auctionid = frappe.get_doc("Auction Item", auction_id)
+                if auctionid:
+                    if title and message:
+                    
+                        payload = json.dumps({
+                            "message": {
+                                "topic": "all",
+                                "data": {
+                                    "notification_type": "message",
+                                    "title": title,
+                                    "message": message,
+                                    "auctionId": str(auction_id)  
+                                }
+                            }
+                        })
+                    elif not title and not message:
+                        
+                        payload = json.dumps({
+                            "message": {
+                                "topic": "all",
+                                "data": {
+                                    "notification_type": "message",
+                                    "auctionId": str(auction_id)  
+                                }
+                            }
+                        })
+                else:
+                    return Response(json.dumps({"error": "Not a valid auction id"}), status=400, mimetype='application/json')
+            else:
+        
+                payload = json.dumps({
+                    "message": {
+                        "topic": "all",
+                        "data": {
+                            "notification_type": "message",
+                            "title": title,
+                            "message": message,
+                        
+                        }
+                    }
+                })
+
+            headers = {
+                'Authorization': 'Bearer ' + _get_access_token(),
+                'Content-Type': 'application/json',
+            }
+
+            response = requests.post(url, headers=headers, data=payload)
+            if response.status_code == 200:
+                return Response(json.dumps({"data": "Message sent"}), status=200, mimetype='application/json')
+            else:
+                return Response(json.dumps({"error": "Failed to send message"}), status=400, mimetype='application/json')
