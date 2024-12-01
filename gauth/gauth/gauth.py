@@ -515,7 +515,7 @@ def upload_file():
                                 
     return urls
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def send_sms_expertexting(phone_number,otp):  # Send SMS using experttexting.com
     try:
         phone_number = "+974" + phone_number
@@ -539,7 +539,7 @@ def send_sms_expertexting(phone_number,otp):  # Send SMS using experttexting.com
         return "Error in qr sending SMS   " + str(e) 
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def send_sms_vodafone(phone_number, message_text):  # send sms through Vodafone Qatar
     try:
         
@@ -566,7 +566,7 @@ def send_sms_vodafone(phone_number, message_text):  # send sms through Vodafone 
 
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def send_sms_twilio(phone_number,otp):  # Send SMS OTP using twilio
     # success response = 201 created
     try:
@@ -592,7 +592,7 @@ def send_sms_twilio(phone_number,otp):  # Send SMS OTP using twilio
     except Exception as e:
         return "Error in qr sending SMS   " + str(e)
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def payment_gateway_log(reference,amount,user,bid):
                     try:
                         current_time = frappe.utils.now()
@@ -625,7 +625,7 @@ def get_sms_id(provider):
 
     
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def make_payment_entry(
 	amount,
     user,
@@ -729,7 +729,7 @@ def _get_customer_details(user_email = None, mobile_phone = None):
     else:
         return  Response(json.dumps({"message": "Customer not found" , "user_count": 0}), status=404, mimetype='application/json')
     
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=False)
 def get_account_balance(customer=None):
     response_content =frappe.session.user
     balance=  get_balance_on(party_type="Customer", party=response_content)
@@ -981,7 +981,7 @@ def firebase_subscribe_to_topic(topic,fcm_token):
 
 
 
-@frappe.whitelist(allow_guest=True) 
+@frappe.whitelist(allow_guest=False) 
 def send_email(Subject=None, Text=None, To=None, From=None):
     url = "https://api.sparkpost.com/api/v1/transmissions"
     
