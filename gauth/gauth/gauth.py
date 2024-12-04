@@ -28,6 +28,9 @@ from erpnext.accounts.utils import get_balance_on, get_fiscal_year
 
 error='Authentication required. Please provide valid credentials..'
 
+
+
+
 @frappe.whitelist(allow_guest=True)
 def getToken2(self):
     pass
@@ -1107,3 +1110,95 @@ def send_notification(title=None, message=None, auction_id=None):
                 return Response(json.dumps({"data": "Message sent"}), status=200, mimetype='application/json')
             else:
                 return Response(json.dumps({"error": "Failed to send message"}), status=400, mimetype='application/json')
+
+
+@frappe.whitelist(allow_guest=True)
+def test_Encryption_xor(text_for_encryption,key):
+    result = ''.join(chr(ord(c) ^ ord(k)) for c, k in zip(text_for_encryption, key * (len(text_for_encryption) // len(key) + 1)))
+    return base64.b64encode(result.encode()).decode()  # Encode result in Base64
+
+@frappe.whitelist(allow_guest=True)
+def test_Decryption_xor(text_for_decryption,key):
+    encrypted = base64.b64decode(text_for_decryption).decode()  # Decode Base64
+    return ''.join(chr(ord(c) ^ ord(k)) for c, k in zip(encrypted, key * (len(encrypted) // len(key) + 1)))
+
+
+def decrypt_2FA(encrypted_key):
+    import pyotp
+    with open(frappe.local.site + "/api_encr.en", "r", encoding="utf-8") as file:
+            secret = file.read().strip()
+    totp = pyotp.TOTP(secret, interval=60)
+    current_totp = totp.now()
+    encrypted = base64.b64decode(encrypted_key).decode()  # Decode Base64
+    return current_totp, ''.join(chr(ord(c) ^ ord(k)) for c, k in zip(encrypted, current_totp * (len(encrypted) // len(current_totp) + 1)))
+
+@frappe.whitelist(allow_guest=True)
+def test_generate_token_encrypt( text_for_encryption):
+    import pyotp
+    with open(frappe.local.site + "/api_encr.en", "r", encoding="utf-8") as file:
+            secret = file.read().strip()
+    totp = pyotp.TOTP(secret, interval=60)
+    current_totp = totp.now()
+    result = ''.join(chr(ord(c) ^ ord(k)) for c, k in zip(text_for_encryption, current_totp * (len(text_for_encryption) // len(current_totp) + 1)))
+    return base64.b64encode(result.encode()).decode()  # Encode result in Base64
+
+@frappe.whitelist(allow_guest=True)
+def test_generate_2FA():
+    import pyotp
+    with open("erp.dallahmzad.com/api_encr.en", "r", encoding="utf-8") as file:
+            secret = file.read().strip()
+    totp = pyotp.TOTP(secret, interval=60)
+    current_totp = totp.now()
+    return current_totp
+
+@frappe.whitelist(allow_guest=True)
+def generate_token_encrypt( encrypted_key):
+    try:
+        try:
+                #api_key, api_secret, app_key
+                current_totp,decrypted_key = decrypt_2FA(encrypted_key)
+                # return  decrypted_key,current_totp
+                # return decrypted_key
+                api_key, api_secret, app_key = decrypted_key.split("::")
+                
+                # return api_key, api_secret, app_key,decrypted_key
+        except:
+                return Response(json.dumps({"message": "2FA token expired" , "user_count": 0}), status=401, mimetype='application/json')
+        # return api_key, api_secret, app_key
+        try:
+            app_key = base64.b64decode(app_key).decode("utf-8")
+        except Exception as e:
+            return Response(json.dumps({"message": "Security Parameters are not valid" , "user_count": 0}), status=401, mimetype='application/json')
+        clientID, clientSecret, clientUser = frappe.db.get_value('OAuth Client', {'app_name': app_key}, ['client_id', 'client_secret','user'])
+        
+        if clientID is None:
+            # return app_key
+            return Response(json.dumps({"message": "Security Parameters are not valid" , "user_count": 0}), status=401, mimetype='application/json')
+        
+        client_id = clientID  # Replace with your OAuth client ID
+        client_secret = clientSecret  # Replace with your OAuth client secret
+        url =  frappe.local.conf.host_name  + "/api/method/frappe.integrations.oauth2.get_token"
+        payload = {
+            "username": api_key,
+            "password": api_secret,
+            "grant_type": "password",
+            "client_id": client_id,
+            "client_secret": client_secret,
+            # "grant_type": "refresh_token"
+        }
+        files = []
+        headers = {"Content-Type": "application/json"}
+        response = requests.request("POST", url, data=payload, files=files)
+        if response.status_code == 200:
+            result_data = json.loads(response.text)
+            return Response(json.dumps({"data":result_data}), status=200, mimetype='application/json')
+            
+        else:
+            frappe.local.response.http_status_code = 401
+            return json.loads(response.text)
+            
+    except Exception as e:
+            # frappe.local.response.http_status_code = 401
+            # return json.loads(response.text)
+            return Response(json.dumps({"message": e , "user_count": 0}), status=500, mimetype='application/json')
+
